@@ -63,19 +63,20 @@ def _(FastLanguageModel, model):
 def _(tokenizer):
     EOS_TOKEN = tokenizer.eos_token
 
-    alpaca_prompt = """Below is an instruction that describes a task, paired with an input that provides further context. Write a response that appropriately completes the request.
+    alpaca_prompt = """Below is an instruction that describes a task, paired with an input that provides further context. Write a response that appropriately completes the request. Finally, an explanation justifies the generated.
 
     ### Instruction:
-    Company database: {}
+    {}
 
     ### Input:
-    SQL Prompt: {}
+    {}
 
     ### Response:
     SQL: {}
 
     Explanation: {}
     """
+
 
     def formatting_prompts_func(examples):
         company_databases = examples["sql_context"]
@@ -84,7 +85,7 @@ def _(tokenizer):
         explanations = examples["sql_explanation"]
         texts = []
         for company_database, prompt, sql, explanation in zip(company_databases, prompts, sqls, explanations):
-            text = alpaca_prompt.format(company_database, prompt, sql, explanation) + EOS_TOKEN
+            text = alpaca_prompt.format(prompt, company_database, sql, explanation) + EOS_TOKEN
             texts.append(text)
         return {"text": texts}
     return (formatting_prompts_func,)
@@ -150,68 +151,54 @@ def _(trainer):
 
 
 @app.cell
-def _(model_peft, tokenizer):
-    # skip this cell if the dir already exists
-    model_peft.save_pretrained_merged("merged_model", tokenizer, save_method = "merged_16bit",)
-    return
+def _(FastLanguageModel, model_peft):
+    model_for_inference = FastLanguageModel.for_inference(model_peft)
+    return (model_for_inference,)
 
 
 @app.cell
 def _():
-    from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig
-    return (AutoTokenizer,)
+    input_prompt = """You are an SQL generator that takes the user's query and gives them helpful SQL to use.
+
+    Below is an instruction that describes a task, paired with an input that provides further context. Write a response that appropriately completes the request. Finally, an explanation justifies the generated.
+
+    ### Instruction:
+    {}
+
+    ### Input:
+    {}
+
+    ### Response:
+    SQL:
+    """
+    prompt = input_prompt.format(
+        "Generate an SQL query to obtain all posts with tag 'terminal'. Be minimal.",
+        "Company has 3 tables: `posts`, `tags` and `users`."
+    )
+    return (prompt,)
 
 
 @app.cell
-def _():
-    from peft import AutoPeftModelForCausalLM
-    return (AutoPeftModelForCausalLM,)
-
-
-@app.cell
-def _(AutoPeftModelForCausalLM):
-    trained_model = AutoPeftModelForCausalLM.from_pretrained(
-        "./merged_model",
-    ).to("cuda")
-    return (trained_model,)
-
-
-@app.cell
-def _(AutoTokenizer):
-    tokenizer_for_inputs = AutoTokenizer.from_pretrained("./merged_model")
-    return (tokenizer_for_inputs,)
-
-
-@app.cell
-def _(mo):
+def _(mo, prompt):
     mo.md(
-        r"""
+        rf"""
     #Prompt
-    "Write an SQL statement to query posts with the tag 'terminal'"
+    {prompt}
     """
     )
     return
 
 
 @app.cell
-def _(tokenizer_for_inputs):
-    inputs = tokenizer_for_inputs(
-        "Write an SQL statement to query posts with the tag 'terminal'.",
-        return_tensors="pt",
-    ).to("cuda")
+def _(prompt, tokenizer):
+    inputs = tokenizer([prompt], return_tensors = "pt").to("cuda")
     return (inputs,)
 
 
 @app.cell
-def _(inputs, trained_model):
-    # outputs = model_peft.generate(**inputs, max_new_tokens=200)
-    outputs = trained_model.generate(**inputs)
-    return (outputs,)
-
-
-@app.cell
-def _(outputs, tokenizer_for_inputs):
-    response = tokenizer_for_inputs.batch_decode(outputs, skip_special_tokens=True)
+def _(inputs, model_for_inference, tokenizer):
+    outputs = model_for_inference.generate(**inputs, max_new_tokens=100, use_cache=True)
+    response = tokenizer.batch_decode(outputs)
     return (response,)
 
 
@@ -219,8 +206,26 @@ def _(outputs, tokenizer_for_inputs):
 def _(mo, response):
     mo.md(
         rf"""
-    # Response
+    #Response from fine tune
     {response[0]}
+    """
+    )
+    return
+
+
+@app.cell
+def _(inputs, model, tokenizer):
+    outputs_from_original = model.generate(**inputs, max_new_tokens=100, use_cache=True)
+    response_from_original = tokenizer.batch_decode(outputs_from_original)
+    return (response_from_original,)
+
+
+@app.cell
+def _(mo, response_from_original):
+    mo.md(
+        rf"""
+    #Response from oringinal
+    {response_from_original[0]}
     """
     )
     return

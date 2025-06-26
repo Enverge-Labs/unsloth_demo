@@ -145,8 +145,9 @@ def _(mo):
 
 
 @app.cell
-def _(trainer):
-    trainer_stats = trainer.train()
+def _(mo, trainer):
+    with mo.persistent_cache(name="trainer_cache"):
+        trainer_stats = trainer.train()
     return
 
 
@@ -196,9 +197,10 @@ def _(prompt, tokenizer):
 
 
 @app.cell
-def _(inputs, model_for_inference, tokenizer):
-    outputs = model_for_inference.generate(**inputs, max_new_tokens=100, use_cache=True)
-    response = tokenizer.batch_decode(outputs)
+def _(inputs, mo, model_for_inference, tokenizer):
+    with mo.persistent_cache(name="response_cache"):
+        outputs = model_for_inference.generate(**inputs, max_new_tokens=100, use_cache=True)
+        response = tokenizer.batch_decode(outputs)
     return (response,)
 
 
@@ -214,9 +216,10 @@ def _(mo, response):
 
 
 @app.cell
-def _(inputs, model, tokenizer):
-    outputs_from_original = model.generate(**inputs, max_new_tokens=100, use_cache=True)
-    response_from_original = tokenizer.batch_decode(outputs_from_original)
+def _(inputs, mo, model, tokenizer):
+    with mo.persistent_cache(name="response_from_original_cache"):
+        outputs_from_original = model.generate(**inputs, max_new_tokens=100, use_cache=True)
+        response_from_original = tokenizer.batch_decode(outputs_from_original)
     return (response_from_original,)
 
 

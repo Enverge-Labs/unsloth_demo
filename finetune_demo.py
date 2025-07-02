@@ -12,7 +12,7 @@ def _():
 
 @app.cell
 def _(mo):
-    mo.md(r"""# Tudor's first fine tune on Envege Lab""")
+    mo.md(r"""# Welcome to Enverge Lab""")
     return
 
 
@@ -57,6 +57,15 @@ def _(FastLanguageModel, model):
         loftq_config=None
     )
     return (model_peft,)
+
+
+@app.cell
+def _(mo):
+    mo.md(r"""Note: PyTorch contains some helper classes for these formats: [read more](https://docs.pytorch.org/torchtune/0.2/generated/torchtune.data.AlpacaInstructTemplate.html).
+    
+    Not used in this demo to emphasize what's happening under the hood.
+    """)
+    return
 
 
 @app.cell

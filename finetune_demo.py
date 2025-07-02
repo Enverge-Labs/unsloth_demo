@@ -61,8 +61,6 @@ def _(FastLanguageModel, model):
 
 @app.cell
 def _(tokenizer):
-    EOS_TOKEN = tokenizer.eos_token
-
     alpaca_prompt = """Below is an instruction that describes a task, paired with an input that provides further context. Write a response that appropriately completes the request. Finally, an explanation justifies the generated.
 
     ### Instruction:
@@ -76,6 +74,8 @@ def _(tokenizer):
 
     Explanation: {}
     """
+
+    EOS_TOKEN = tokenizer.eos_token
 
 
     def formatting_prompts_func(examples):
@@ -122,7 +122,7 @@ def _(dataset, max_seq_length, model_peft, tokenizer):
             per_device_train_batch_size = 2,
             gradient_accumulation_steps = 4,
             warmup_steps = 5,
-            # num_train_epochs = 1, # Set this for 1 full training run.
+            num_train_epochs = 1,
             max_steps = 60,
             learning_rate = 2e-4,
             fp16 = not is_bfloat16_supported(),
@@ -133,6 +133,8 @@ def _(dataset, max_seq_length, model_peft, tokenizer):
             lr_scheduler_type = "linear",
             seed = 3407,
             output_dir = "outputs",
+            # uncomment this to integrate with W&B
+            # report_to="none"
         ),
     )
     return (trainer,)

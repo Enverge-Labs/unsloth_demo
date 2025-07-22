@@ -9,13 +9,13 @@ This is support material for a video how-to guide for fine-tuning a model with U
 The video itself can be seen here:
 
 <div>
-    <a href="https://www.loom.com/share/efca912be74d479ca48141cfe8988073">
-      <p>Enverge Lab - Fine-tuning an LLM with Unsloth - How-to - Watch Video</p>
-    </a>
-    <a href="https://www.loom.com/share/efca912be74d479ca48141cfe8988073">
-      <img style="max-width:300px;" src="https://cdn.loom.com/sessions/thumbnails/efca912be74d479ca48141cfe8988073-1050baabb0999f99-full-play.gif">
-    </a>
-  </div>
+  <a href="https://www.loom.com/share/d25722787b9244f383321d0fcae7ef47">
+    <p>Enverge Lab - Fine-tuning an LLM with Unsloth - How-to - Watch Video</p>
+  </a>
+  <a href="https://www.loom.com/share/d25722787b9244f383321d0fcae7ef47">
+    <img style="max-width:300px;" src="https://cdn.loom.com/sessions/thumbnails/d25722787b9244f383321d0fcae7ef47-c7896f28cbba92d0-full-play.gif">
+  </a>
+</div>
 
 <br>
 <br>
